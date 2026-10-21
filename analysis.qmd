@@ -1,0 +1,82 @@
+---
+title: "Popularity of the Name Ashlan Over Time"
+format: html
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+```{r}
+library(tidyverse)
+
+# Read the SSA baby names dataset and keep only rows for "Ashlan"
+ashlan <- read_csv("ssa-baby-names.csv", show_col_types = FALSE) |>
+  filter(name == "Ashlan")
+
+# Identify the major peaks and set custom label offsets so boxes don't overlap
+peaks <- ashlan |>
+  filter(
+    (sex == "F" & year %in% c(1997, 2000, 2003, 2009, 2011)) |
+      (sex == "M" & year %in% c(2006, 2024))
+  ) |>
+  mutate(
+    label_x = case_when(
+      year == 1997 ~ year - 1.8,
+      year == 2000 ~ year + 0.8,
+      year == 2003 ~ year + 1.5,
+      year == 2011 ~ year + 2.2,
+      TRUE ~ year
+    ),
+    label_y = case_when(
+      year == 1997 ~ count + 4,
+      year == 2000 ~ count + 6,
+      year == 2003 ~ count + 3,
+      year == 2011 ~ count + 3,
+      TRUE ~ count + 4
+    )
+  )
+
+# Plot annual counts over time with peak labels and annotations
+ashlan |>
+  ggplot(aes(x = year, y = count, color = sex)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  # Highlight peak points and label their exact counts
+  geom_point(data = peaks, size = 3) +
+  geom_label(
+    data = peaks,
+    aes(x = label_x, y = label_y, label = paste0(year, ": ", count)),
+    size = 3,
+    show.legend = FALSE
+  ) +
+  # Annotate key historical details
+  annotate(
+    "text",
+    x = 1983, y = 30,
+    label = "First appears in\n1983 (5 girls)",
+    hjust = 0, size = 3.2, color = "gray30"
+  ) +
+  annotate(
+    "text",
+    x = 2009, y = 75,
+    label = "All-time peak:\n64 girls in 2009",
+    fontface = "bold", size = 3.3, color = "gray20"
+  ) +
+  annotate(
+    "text",
+    x = 2019, y = 27,
+    label = "Shifts to mostly boys\nafter 2020 (peaks at 13 in 2024)",
+    hjust = 0.5, size = 3.2, color = "gray30"
+  ) +
+  scale_y_continuous(limits = c(0, 82)) +
+  labs(
+    title = "Babies Named Ashlan in the U.S. Over Time (1983–2025)",
+    subtitle = "Annual births recorded by the Social Security Administration, with exact peak counts labeled",
+    x = "Year",
+    y = "Number of Babies",
+    color = "Sex",
+    caption = "Source: U.S. Social Security Administration (names with 5+ births per year)"
+  ) +
+  theme_minimal()
+```
